@@ -10,36 +10,36 @@ API_NAME="cuentas-api-${SUFFIX}"
 STAGE_NAME="test"
 OPENAPI_FILE="contract/openapi.yaml"
 
-# ── Step 1: Verificar si ya existe la API ──
+# ── Step 1: Preparar OpenAPI con Nombre Único ──
+# Creamos una copia temporal con el nombre único para evitar colisiones entre alumnos
+TMP_OPENAPI="/tmp/openapi-${SUFFIX}.yaml"
+cp "$OPENAPI_FILE" "$TMP_OPENAPI"
+sed -i "s/title: .*/title: \"${API_NAME}\"/g" "$TMP_OPENAPI"
+
+# ── Step 2: Verificar si ya existe la API ──
 echo "📌 Checking if API '${API_NAME}' already exists..."
-EXISTING_API_ID=$(aws apigateway get-rest-apis --query "items[?name=='${API_NAME}'].id" --output text 2>/dev/null || echo "")
+EXISTING_API_ID=$(aws apigateway get-rest-apis --limit 500 --query "items[?name=='${API_NAME}'].id" --output text 2>/dev/null || echo "")
 
 if [ -n "$EXISTING_API_ID" ] && [ "$EXISTING_API_ID" != "None" ]; then
   echo "♻️  API already exists (ID: ${EXISTING_API_ID}). Updating..."
   aws apigateway put-rest-api \
     --rest-api-id "$EXISTING_API_ID" \
     --mode overwrite \
-    --body "fileb://${OPENAPI_FILE}" \
+    --body "fileb://${TMP_OPENAPI}" \
     --no-cli-pager
   API_ID="$EXISTING_API_ID"
 else
-  echo "🆕 Creating new REST API..."
+  echo "🆕 Creating new REST API with unique name '${API_NAME}'..."
   API_ID=$(aws apigateway import-rest-api \
-    --body "fileb://${OPENAPI_FILE}" \
+    --body "fileb://${TMP_OPENAPI}" \
     --parameters endpointConfigurationTypes=REGIONAL \
     --query 'id' --output text \
     --no-cli-pager)
-
-  # Rename API
-  aws apigateway update-rest-api \
-    --rest-api-id "$API_ID" \
-    --patch-operations op=replace,path=/name,value="${API_NAME}" \
-    --no-cli-pager
 fi
 
 echo "✅ API ID: ${API_ID}"
 
-# ── Step 2: Deploy to stage test ──
+# ── Step 3: Deploy to stage test ──
 echo "📌 Deploying to stage '${STAGE_NAME}'..."
 aws apigateway create-deployment \
   --rest-api-id "$API_ID" \
@@ -50,11 +50,11 @@ aws apigateway create-deployment \
 ENDPOINT="https://${API_ID}.execute-api.${AWS_REGION}.amazonaws.com/${STAGE_NAME}"
 echo "✅ Mock deployed at: ${ENDPOINT}"
 
-# ── Step 3: Export API ID for next steps ──
+# ── Step 4: Export API ID for next steps ──
 echo "API_ID=${API_ID}" >> "$GITHUB_ENV" 2>/dev/null || true
 echo "API_ENDPOINT=${ENDPOINT}" >> "$GITHUB_ENV" 2>/dev/null || true
 
-# ── Step 4: Export OpenAPI from API Gateway ──
+# ── Step 5: Export OpenAPI from API Gateway ──
 echo "📌 Exporting OpenAPI spec from API Gateway..."
 aws apigateway get-export \
   --rest-api-id "$API_ID" \
