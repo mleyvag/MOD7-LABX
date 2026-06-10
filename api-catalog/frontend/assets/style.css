@@ -1,0 +1,270 @@
+/* ============================================================
+   API Catalog Styles — Colores: Celeste #00D2F3, Negro, Blanco
+   ============================================================ */
+
+:root {
+  --primary: #00D2F3;
+  --primary-dark: #00A8C6;
+  --bg-dark: #0a0a0a;
+  --bg-card: #1a1a2e;
+  --bg-card-hover: #16213e;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border: #2a2a4a;
+  --success: #00E676;
+  --warning: #FFD600;
+  --info: #448AFF;
+  --mock: #FFD600;
+  --implemented: #448AFF;
+  --production: #00E676;
+  --pending: #666666;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ── Header ── */
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--primary);
+}
+
+header h1 {
+  font-size: 2.2rem;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.stat-count {
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+
+/* ── Filters ── */
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--primary);
+  color: var(--bg-dark);
+  border-color: var(--primary);
+  font-weight: bold;
+}
+
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+thead {
+  background: var(--bg-card-hover);
+}
+
+th {
+  padding: 1rem;
+  text-align: left;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+tr:hover td {
+  background: var(--bg-card-hover);
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+/* ── Status Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-mock {
+  background: rgba(255, 214, 0, 0.15);
+  color: var(--mock);
+  border: 1px solid rgba(255, 214, 0, 0.3);
+}
+
+.badge-implemented {
+  background: rgba(68, 138, 255, 0.15);
+  color: var(--implemented);
+  border: 1px solid rgba(68, 138, 255, 0.3);
+}
+
+.badge-production {
+  background: rgba(0, 230, 118, 0.15);
+  color: var(--production);
+  border: 1px solid rgba(0, 230, 118, 0.3);
+}
+
+.badge-pending {
+  background: rgba(102, 102, 102, 0.15);
+  color: var(--pending);
+  border: 1px solid rgba(102, 102, 102, 0.3);
+}
+
+.badge-cloud {
+  background: rgba(0, 210, 243, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(0, 210, 243, 0.3);
+}
+
+/* ── Buttons ── */
+.btn-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 1rem;
+  background: var(--primary);
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-explore:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-disabled {
+  background: var(--border);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* ── Explorer Page ── */
+.back-link {
+  display: inline-block;
+  color: var(--primary);
+  text-decoration: none;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.api-info {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+#swagger-container {
+  margin-top: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+/* ── Footer ── */
+footer {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .container { padding: 1rem; }
+  header h1 { font-size: 1.6rem; }
+  .stats { flex-direction: column; gap: 0.5rem; }
+  table { font-size: 0.8rem; }
+  th, td { padding: 0.5rem; }
+}

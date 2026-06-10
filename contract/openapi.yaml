@@ -1,0 +1,148 @@
+openapi: "3.0.3"
+info:
+  title: "Cuentas Bancarias API"
+  version: ""
+  description: |
+    API para gestionar cuentas bancarias de clientes.
+    Permite consultar las cuentas asociadas a un cliente.
+  contact:
+    name: "Equipo de APIs"
+    email: "apis@banco.com"
+
+servers:
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
+    description: "API Gateway Endpoint"
+    variables:
+      apiId:
+        default: "xxx"
+      region:
+        default: "us-east-1"
+      stage:
+        default: "test"
+
+paths:
+  /getClienteCuentas/{clienteId}:
+    get:
+      summary: "Obtener cuentas bancarias de un cliente"
+      tags:
+        - Cuentas
+      parameters:
+        - name: clienteId
+          in: path
+          required: true
+          description: "Identificador único del cliente"
+          schema:
+            type: string
+            example: "CLI001"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CuentasResponse"
+              example:
+                clienteId: "CLI001"
+                cuentas:
+                  - numeroCuenta: "1234567890"
+                    tipo: "AHORROS"
+                    moneda: "PEN"
+                    titular: "Juan Pérez"
+                    saldo: 5000.00
+                  - numeroCuenta: "0987654321"
+                    tipo: "CORRIENTE"
+                    moneda: "USD"
+                    titular: "Juan Pérez"
+                    saldo: 1200.50
+        "404":
+          description: "Cliente no encontrado"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      x-amazon-apigateway-integration:
+        type: MOCK
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: |
+                {
+                  "clienteId": "$input.params('clienteId')",
+                  "cuentas": [
+                    {
+                      "numeroCuenta": "1234567890",
+                      "tipo": "AHORROS",
+                      "moneda": "PEN",
+                      "titular": "Juan Pérez (Mock)",
+                      "saldo": 5000.00
+                    },
+                    {
+                      "numeroCuenta": "0987654321",
+                      "tipo": "CORRIENTE",
+                      "moneda": "USD",
+                      "titular": "Juan Pérez (Mock)",
+                      "saldo": 1200.50
+                    }
+                  ]
+                }
+        passthroughBehavior: "when_no_match"
+
+components:
+  schemas:
+    CuentasResponse:
+      type: object
+      properties:
+        clienteId:
+          type: string
+          description: "Identificador del cliente"
+        cuentas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Cuenta"
+    
+    Cuenta:
+      type: object
+      properties:
+        numeroCuenta:
+          type: string
+          description: "Número de cuenta bancaria"
+        tipo:
+          type: string
+          enum: [AHORROS, CORRIENTE]
+          description: "Tipo de cuenta"
+        moneda:
+          type: string
+          enum: [PEN, USD]
+          description: "Moneda de la cuenta"
+        titular:
+          type: string
+          description: "Nombre del titular"
+        saldo:
+          type: number
+          format: double
+          description: "Saldo actual de la cuenta"
+    
+    Error:
+      type: object
+      description: "Error response siguiendo RFC 7807"
+      properties:
+        type:
+          type: string
+          description: "URI de referencia del tipo de error"
+        title:
+          type: string
+          description: "Título corto del error"
+        status:
+          type: integer
+          description: "Código de estado HTTP"
+        detail:
+          type: string
+          description: "Descripción detallada del error"
+        instance:
+          type: string
+          description: "URI de la instancia del error"
