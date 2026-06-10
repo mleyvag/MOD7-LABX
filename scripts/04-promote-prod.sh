@@ -123,23 +123,42 @@ aws apigateway create-deployment \
   --description "Production deployment with API Key" \
   --no-cli-pager
 
-# ── Step 8: Create Usage Plan + API Key ──
-echo "📌 Creating Usage Plan..."
-USAGE_PLAN_ID=$(aws apigateway create-usage-plan \
-  --name "plan-${SUFFIX}-$(date +%s)" \
-  --description "Usage plan for cuentas-api-${SUFFIX}" \
-  --throttle burstLimit=5,rateLimit=2 \
-  --quota limit=1000,period=DAY \
-  --api-stages apiId="${API_ID}",stage="${STAGE_NAME}" \
-  --query 'id' --output text \
-  --no-cli-pager)
+# ── Step 8: Create or Reuse Usage Plan + API Key ──
+echo "📌 Checking for existing Usage Plan 'plan-${SUFFIX}'..."
+USAGE_PLAN_ID=$(aws apigateway get-usage-plans --limit 500 --query "items[?name=='plan-${SUFFIX}'].id" --output text --no-cli-pager)
 
-echo "📌 Creating API Key..."
-API_KEY_ID=$(aws apigateway create-api-key \
-  --name "key-${SUFFIX}-$(date +%s)" \
-  --enabled \
-  --query 'id' --output text \
-  --no-cli-pager)
+if [ -z "$USAGE_PLAN_ID" ] || [ "$USAGE_PLAN_ID" == "None" ]; then
+  echo "🆕 Creating new Usage Plan..."
+  USAGE_PLAN_ID=$(aws apigateway create-usage-plan \
+    --name "plan-${SUFFIX}" \
+    --description "Usage plan for cuentas-api-${SUFFIX}" \
+    --throttle burstLimit=5,rateLimit=2 \
+    --quota limit=1000,period=DAY \
+    --api-stages apiId="${API_ID}",stage="${STAGE_NAME}" \
+    --query 'id' --output text \
+    --no-cli-pager)
+else
+  echo "♻️  Reusing existing Usage Plan (ID: ${USAGE_PLAN_ID})..."
+  # Asegurar que el plan esté vinculado a este API/Stage
+  aws apigateway update-usage-plan \
+    --usage-plan-id "$USAGE_PLAN_ID" \
+    --patch-operations op=add,path=/apiStages,value="${API_ID}:${STAGE_NAME}" \
+    --no-cli-pager 2>/dev/null || echo "⚠️  Stage already linked to plan (OK)"
+fi
+
+echo "📌 Checking for existing API Key 'key-${SUFFIX}'..."
+API_KEY_ID=$(aws apigateway get-api-keys --limit 500 --query "items[?name=='key-${SUFFIX}'].id" --output text --no-cli-pager)
+
+if [ -z "$API_KEY_ID" ] || [ "$API_KEY_ID" == "None" ]; then
+  echo "🆕 Creating new API Key..."
+  API_KEY_ID=$(aws apigateway create-api-key \
+    --name "key-${SUFFIX}" \
+    --enabled \
+    --query 'id' --output text \
+    --no-cli-pager)
+else
+  echo "♻️  Reusing existing API Key (ID: ${API_KEY_ID})..."
+fi
 
 API_KEY_VALUE=$(aws apigateway get-api-key \
   --api-key "$API_KEY_ID" \
@@ -147,11 +166,12 @@ API_KEY_VALUE=$(aws apigateway get-api-key \
   --query 'value' --output text \
   --no-cli-pager)
 
+# Vincular Key al Plan (si no está ya vinculada)
 aws apigateway create-usage-plan-key \
   --usage-plan-id "$USAGE_PLAN_ID" \
   --key-id "$API_KEY_ID" \
   --key-type "API_KEY" \
-  --no-cli-pager
+  --no-cli-pager 2>/dev/null || echo "⚠️  Key already linked to plan (OK)"
 
 PROD_ENDPOINT="https://${API_ID}.execute-api.${AWS_REGION}.amazonaws.com/${STAGE_NAME}"
 
