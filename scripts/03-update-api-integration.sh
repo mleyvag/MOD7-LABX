@@ -17,6 +17,11 @@ API_ID=$(aws apigateway get-rest-apis \
   --query "items[?name=='${API_NAME}'].id" \
   --output text --no-cli-pager)
 
+if [ -z "$API_ID" ] || [ "$API_ID" == "None" ]; then
+  echo "❌ Error: Could not find API ID for name ${API_NAME}"
+  exit 1
+fi
+
 echo "📌 API ID: ${API_ID}"
 
 # ── Step 2: Get resource ID for /clientes/{clienteId}/cuentas ──
