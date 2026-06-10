@@ -6,7 +6,7 @@
 export const handler = async (event) => {
   console.log("Event received:", JSON.stringify(event, null, 2));
 
-  const clienteId = event.pathParameters?.clienteId;
+  const clienteId = event.pathParameters?.['cliente-id'] || event.pathParameters?.clienteId;
   const httpMethod = event.httpMethod;
 
   // ── Headers CORS ──
@@ -26,7 +26,7 @@ export const handler = async (event) => {
         type: "https://api.banco.com/errors/validation",
         title: "Parámetro requerido faltante",
         status: 400,
-        detail: "El parámetro 'clienteId' es obligatorio.",
+        detail: "El parámetro 'cliente-id' es obligatorio.",
         instance: event.path,
       }),
     };
@@ -41,14 +41,14 @@ export const handler = async (event) => {
           numeroCuenta: "1234567890",
           tipo: "AHORROS",
           moneda: "PEN",
-          titular: "Miguel Leyva",
+          titular: "Juan Pérez",
           saldo: 5000.0,
         },
         {
           numeroCuenta: "0987654321",
           tipo: "CORRIENTE",
           moneda: "USD",
-          titular: "Miguel Leyva",
+          titular: "Juan Pérez",
           saldo: 1200.5,
         },
       ],
@@ -90,8 +90,60 @@ export const handler = async (event) => {
   }
 
   // ── POST /clientes/{clienteId}/cuentas (para Lab Propuesto) ──
-  // TODO: Implementar en el laboratorio propuesto
-  // if (httpMethod === "POST") { ... }
+  // --- LABORATORIO PROPUESTO: DESCOMENTAR PARA IMPLEMENTAR EL POST ---
+  
+  if (httpMethod === "POST") {
+    let body;
+    try {
+      body = JSON.parse(event.body || "{}");
+    } catch (e) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          type: "https://api.banco.com/errors/invalid-json",
+          title: "JSON inválido",
+          status: 400,
+          detail: "El cuerpo de la solicitud no es un JSON válido.",
+          instance: event.path,
+        }),
+      };
+    }
+
+    const { tipo, moneda, titular } = body;
+
+    // Validación de campos requeridos
+    if (!tipo || !moneda || !titular) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          type: "https://api.banco.com/errors/validation",
+          title: "Campos requeridos faltantes",
+          status: 400,
+          detail: "Los campos 'tipo', 'moneda' y 'titular' son obligatorios.",
+          instance: event.path,
+        }),
+      };
+    }
+
+    // Simular creación de cuenta
+    const nuevaCuenta = {
+      numeroCuenta: Math.floor(Math.random() * 10000000000).toString().padStart(10, '0'),
+      tipo: tipo.toUpperCase(),
+      moneda: moneda.toUpperCase(),
+      titular: titular,
+      saldo: 0.00,
+      creadoEn: new Date().toISOString()
+    };
+
+    return {
+      statusCode: 201,
+      headers,
+      body: JSON.stringify(nuevaCuenta),
+    };
+  }
+  
 
   // ── Método no soportado ──
   return {

@@ -20,16 +20,18 @@ cd ..
 echo "📌 Checking if function '${FUNCTION_NAME}' exists..."
 if aws lambda get-function --function-name "$FUNCTION_NAME" --no-cli-pager 2>/dev/null; then
   echo "♻️  Function exists. Updating code..."
-  aws lambda update-function-code \
+  VERSION=$(aws lambda update-function-code \
     --function-name "$FUNCTION_NAME" \
     --zip-file "fileb://${ZIP_FILE}" \
-    --no-cli-pager
+    --publish \
+    --query 'Version' --output text \
+    --no-cli-pager)
 
   echo "⏳ Waiting for function update..."
   aws lambda wait function-updated-v2 --function-name "$FUNCTION_NAME"
 else
   echo "🆕 Creating new Lambda function..."
-  aws lambda create-function \
+  VERSION=$(aws lambda create-function \
     --function-name "$FUNCTION_NAME" \
     --runtime nodejs20.x \
     --handler src/index.handler \
@@ -37,21 +39,19 @@ else
     --zip-file "fileb://${ZIP_FILE}" \
     --timeout 10 \
     --memory-size 128 \
-    --no-cli-pager
+    --publish \
+    --query 'Version' --output text \
+    --no-cli-pager)
 
   echo "⏳ Waiting for function to be active..."
   aws lambda wait function-active-v2 --function-name "$FUNCTION_NAME"
 fi
 
-# ── Step 3: Publish a new version ──
-echo "📌 Publishing new version..."
-VERSION=$(aws lambda publish-version \
-  --function-name "$FUNCTION_NAME" \
-  --description "Deployed from pipeline" \
-  --query 'Version' --output text \
-  --no-cli-pager)
+echo "✅ Deployed version: ${VERSION}"
 
-echo "✅ Published version: ${VERSION}"
+# ── Step 3: (Merged into Step 2 with --publish) ──
+# El comando publish-version ya no es necesario por separado si usamos --publish arriba
+# para asegurar que siempre incremente la versión.
 
 # ── Step 4: Create or update alias 'test' ──
 echo "📌 Configuring alias '${ALIAS_NAME}' → version ${VERSION}..."
