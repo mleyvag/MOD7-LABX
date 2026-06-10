@@ -55,9 +55,9 @@ cat > /tmp/metadata.json << EOF
   "apiKeyRequired": $([ "$STATUS" = "PRODUCCION" ] && echo "true" || echo "false"),
   "timestamps": {
     "lastUpdated": "${TIMESTAMP}",
-    "mockDeployedAt": $([ "$STATUS" = "MOCK" ] && echo ""${TIMESTAMP}"" || echo "null"),
-    "lambdaDeployedAt": $([ "$STATUS" = "IMPLEMENTADO" ] && echo ""${TIMESTAMP}"" || echo "null"),
-    "promotedToProdAt": $([ "$STATUS" = "PRODUCCION" ] && echo ""${TIMESTAMP}"" || echo "null")
+    "mockDeployedAt": $([ "$STATUS" = "MOCK" ] && echo "\"${TIMESTAMP}\"" || echo "null"),
+    "lambdaDeployedAt": $([ "$STATUS" = "IMPLEMENTADO" ] && echo "\"${TIMESTAMP}\"" || echo "null"),
+    "promotedToProdAt": $([ "$STATUS" = "PRODUCCION" ] && echo "\"${TIMESTAMP}\"" || echo "null")
   },
   "pipeline": {
     "provider": "GitHub Actions",
