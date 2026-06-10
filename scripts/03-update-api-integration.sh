@@ -13,7 +13,7 @@ STAGE_NAME="test"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 # ── Step 1: Get API ID ──
-API_ID=$(aws apigateway get-rest-apis \
+API_ID=$(aws apigateway get-rest-apis --limit 500 \
   --query "items[?name=='${API_NAME}'].id" \
   --output text --no-cli-pager)
 
