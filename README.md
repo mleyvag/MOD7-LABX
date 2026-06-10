@@ -264,7 +264,7 @@ api-lifecycle-lab/
 El README ya incluye un badge de estado. Cambia `{TU_USUARIO}` por tu usuario de GitHub:
 
 ```markdown
-![Contract Pipeline](https://github.com/mleyvag/api-lifecycle-lab/actions/workflows/contract-pipeline.yml/badge.svg)
+![Contract Pipeline](https://github.com/mleyvag/MOD7-LABX/actions/workflows/contract-pipeline.yml/badge.svg)
 ```
 
 ---
