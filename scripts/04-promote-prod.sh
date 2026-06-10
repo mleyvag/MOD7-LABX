@@ -159,8 +159,8 @@ aws apigateway get-export \
   --no-cli-pager \
   /tmp/openapi-export.json
 
-echo "⏳ Waiting for API Key propagation (40s)..."
+echo "⏳ Waiting for API Key propagation (120s)..."
 echo "💡 Tip: API Gateway sometimes takes up to 2 minutes to propagate API Key changes."
-sleep 40
+sleep 120
 
 echo "🟠 [Pipeline 3] Production promotion completed!"
