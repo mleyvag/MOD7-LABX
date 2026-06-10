@@ -40,7 +40,7 @@ fi
 echo "✅ Alias 'prod' → version ${TEST_VERSION}"
 
 # ── Step 3: Get API ID ──
-API_ID=$(aws apigateway get-rest-apis \
+API_ID=$(aws apigateway get-rest-apis --limit 500 \
   --query "items[?name=='${API_NAME}'].id" \
   --output text --no-cli-pager)
 
@@ -91,14 +91,29 @@ aws lambda add-permission \
   --source-arn "arn:aws:execute-api:${AWS_REGION}:${ACCOUNT_ID}:${API_ID}/*/GET/clientes/*/cuentas" \
   --no-cli-pager 2>/dev/null || echo "⚠️  Permission already exists (OK)"
 
-# ── Step 6: Enable API Key requirement on GET method ──
-echo "📌 Enabling API Key requirement on production..."
-aws apigateway update-method \
-  --rest-api-id "$API_ID" \
-  --resource-id "$RESOURCE_ID" \
-  --http-method GET \
-  --patch-operations op=replace,path=/apiKeyRequired,value=true \
-  --no-cli-pager
+# ── Step 6: Enable API Key requirement on ALL methods ──
+echo "📌 Enabling API Key requirement on production for all methods..."
+# Obtenemos la lista de métodos configurados para este recurso
+METHODS_IN_API=$(echo "$RESOURCES" | python3 -c "
+import sys, json
+items = json.load(sys.stdin)
+for item in items:
+    if 'cuentas' in item.get('path', ''):
+        print(' '.join(item.get('resourceMethods', {}).keys()))
+        break
+")
+
+for METHOD in $METHODS_IN_API; do
+  if [ "$METHOD" != "OPTIONS" ]; then
+    echo "🔐 Setting API Key Required = true for ${METHOD}..."
+    aws apigateway update-method \
+      --rest-api-id "$API_ID" \
+      --resource-id "$RESOURCE_ID" \
+      --http-method "$METHOD" \
+      --patch-operations op=replace,path=/apiKeyRequired,value=true \
+      --no-cli-pager
+  fi
+done
 
 # ── Step 7: Deploy stage prod ──
 echo "📌 Deploying stage '${STAGE_NAME}'..."
