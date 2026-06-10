@@ -2,7 +2,7 @@ openapi: "3.0.3"
 info:
   title: "Cuentas Bancarias API"
   # --- FASE 1: GOBERNANZA DEL CONTRATO (ERROR INTENCIONAL 1) ---
-  version: "1.0.0" #  ERROR: La versión no debe estar vacía. ACCIÓN: Cambia a "1.0.0"
+  version: "" #  ERROR: La versión no debe estar vacía. ACCIÓN: Cambia a "1.0.0"
   description: |
     API para gestionar cuentas bancarias de clientes.
     Permite consultar las cuentas asociadas a un cliente.
@@ -32,7 +32,7 @@ paths:
       description: "Retorna una lista de todas las cuentas bancarias asociadas al ID del cliente proporcionado."
       
       # --- FASE 1: GOBERNANZA DEL CONTRATO (ERROR INTENCIONAL 2) ---
-      operationId: listarCuentasCliente # ❌ ERROR: Falta el operationId. ACCIÓN: Descomenta esta línea
+      # operationId: listarCuentasCliente # ❌ ERROR: Falta el operationId. ACCIÓN: Descomenta esta línea
       
       tags:
         - Cuentas
@@ -102,6 +102,68 @@ paths:
                   ]
                 }
         passthroughBehavior: "when_no_match"
+
+    # --- LABORATORIO PROPUESTO: DESCOMENTAR PARA PUBLICAR EL MOCK ---
+    # post:
+    #   summary: "Crear una nueva cuenta para el cliente"
+    #   description: "Crea una cuenta bancaria asociada al ID del cliente proporcionado."
+    #   operationId: crearCuentaCliente
+    #   tags:
+    #     - Cuentas
+    #   parameters:
+    #     - name: cliente-id
+    #       in: path
+    #       required: true
+    #       description: "Identificador único del cliente"
+    #       schema:
+    #         type: string
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       application/json:
+    #         schema:
+    #           type: object
+    #           properties:
+    #             tipo:
+    #               type: string
+    #               enum: [AHORROS, CORRIENTE]
+    #             moneda:
+    #               type: string
+    #               enum: [PEN, USD]
+    #             titular:
+    #               type: string
+    #   responses:
+    #     "201":
+    #       description: "Cuenta creada exitosamente"
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/Cuenta"
+    #     "400":
+    #       description: "Error de validación"
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/Error"
+    #   x-amazon-apigateway-integration:
+    #     type: MOCK
+    #     requestTemplates:
+    #       application/json: |
+    #         {
+    #           "statusCode": 201
+    #         }
+    #     responses:
+    #       default:
+    #         statusCode: "201"
+    #         responseTemplates:
+    #           application/json: |
+    #             {
+    #               "numeroCuenta": "9999888877",
+    #               "tipo": "AHORROS",
+    #               "moneda": "PEN",
+    #               "titular": "Juan Pérez (Mock POST)",
+    #               "saldo": 0.00
+    #             }
 
 components:
   schemas:
