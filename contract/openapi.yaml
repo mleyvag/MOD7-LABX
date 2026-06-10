@@ -1,10 +1,12 @@
 openapi: "3.0.3"
 info:
   title: "Cuentas Bancarias API"
-  version: ""
+  # --- FASE 1: GOBERNANZA DEL CONTRATO ---
+  # version: "" # ❌ ERROR: La versión no debe estar vacía (api-version-non-empty)
+  version: "1.0.0" # ✅ SOLUCIÓN: Descomenta esta línea y comenta la de arriba
   description: |
-    API para gestionar cuentas bancarias de Clientes.
-    Permite consultar las cuentas asociadas a un Cliente.
+    API para gestionar cuentas bancarias de clientes.
+    Permite consultar las cuentas asociadas a un cliente.
   contact:
     name: "Equipo de APIs"
     email: "apis@banco.com"
@@ -21,9 +23,13 @@ servers:
         default: "test"
 
 paths:
-  /getClienteCuentas/{clienteId}:
+  # --- FASE 1: GOBERNANZA DEL CONTRATO ---
+  # /getClienteCuentas/{clienteId}: # ❌ ERROR: El path debe usar kebab-case (paths-kebab-case)
+  /clientes/{clienteId}/cuentas: # ✅ SOLUCIÓN: Descomenta esta línea y comenta la de arriba
     get:
       summary: "Obtener cuentas bancarias de un cliente"
+      # --- FASE 1: GOBERNANZA DEL CONTRATO ---
+      # operationId: listarCuentasCliente # ✅ SOLUCIÓN: Descomenta para cumplir con 'operation-id-required'
       tags:
         - Cuentas
       parameters:
@@ -36,6 +42,8 @@ paths:
             example: "CLI001"
       responses:
         "200":
+          # --- FASE 1: GOBERNANZA DEL CONTRATO ---
+          description: "Lista de cuentas bancarias del cliente" # ✅ SOLUCIÓN: Descomenta para cumplir con 'response-description-required'
           content:
             application/json:
               schema:
@@ -146,4 +154,3 @@ components:
         instance:
           type: string
           description: "URI de la instancia del error"
- 
