@@ -78,15 +78,24 @@ aws lambda add-permission \
   --source-arn "arn:aws:execute-api:${AWS_REGION}:${ACCOUNT_ID}:${API_ID}/*/GET/clientes/*/cuentas" \
   --no-cli-pager 2>/dev/null || echo "⚠️  Permission already exists (OK)"
 
-# ── Step 6: Deploy stage prod ──
+# ── Step 6: Enable API Key requirement on GET method ──
+echo "📌 Enabling API Key requirement on production..."
+aws apigateway update-method \
+  --rest-api-id "$API_ID" \
+  --resource-id "$RESOURCE_ID" \
+  --http-method GET \
+  --patch-operations op=replace,path=/apiKeyRequired,value=true \
+  --no-cli-pager
+
+# ── Step 7: Deploy stage prod ──
 echo "📌 Deploying stage '${STAGE_NAME}'..."
 aws apigateway create-deployment \
   --rest-api-id "$API_ID" \
   --stage-name "$STAGE_NAME" \
-  --description "Production deployment" \
+  --description "Production deployment with API Key" \
   --no-cli-pager
 
-# ── Step 7: Create Usage Plan + API Key ──
+# ── Step 8: Create Usage Plan + API Key ──
 echo "📌 Creating Usage Plan..."
 USAGE_PLAN_ID=$(aws apigateway create-usage-plan \
   --name "plan-${SUFFIX}" \
@@ -116,22 +125,6 @@ aws apigateway create-usage-plan-key \
   --key-type "API_KEY" \
   --no-cli-pager
 
-# ── Step 8: Enable API Key requirement on GET method ──
-echo "📌 Enabling API Key requirement on production..."
-aws apigateway update-method \
-  --rest-api-id "$API_ID" \
-  --resource-id "$RESOURCE_ID" \
-  --http-method GET \
-  --patch-operations op=replace,path=/apiKeyRequired,value=true \
-  --no-cli-pager
-
-# Re-deploy after API Key change
-aws apigateway create-deployment \
-  --rest-api-id "$API_ID" \
-  --stage-name "$STAGE_NAME" \
-  --description "Production with API Key" \
-  --no-cli-pager
-
 PROD_ENDPOINT="https://${API_ID}.execute-api.${AWS_REGION}.amazonaws.com/${STAGE_NAME}"
 
 echo "✅ Production endpoint: ${PROD_ENDPOINT}"
@@ -152,5 +145,8 @@ aws apigateway get-export \
   --accepts application/json \
   --no-cli-pager \
   /tmp/openapi-export.json
+
+echo "⏳ Waiting for API Key propagation (20s)..."
+sleep 20
 
 echo "🟠 [Pipeline 3] Production promotion completed!"
