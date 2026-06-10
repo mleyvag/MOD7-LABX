@@ -3,8 +3,8 @@ info:
   title: "Cuentas Bancarias API"
   version: ""
   description: |
-    API para gestionar cuentas bancarias de clientes.
-    Permite consultar las cuentas asociadas a un cliente.
+    API para gestionar cuentas bancarias de Clientes.
+    Permite consultar las cuentas asociadas a un Cliente.
   contact:
     name: "Equipo de APIs"
     email: "apis@banco.com"
