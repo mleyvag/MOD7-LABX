@@ -44,6 +44,12 @@ API_ID=$(aws apigateway get-rest-apis \
   --query "items[?name=='${API_NAME}'].id" \
   --output text --no-cli-pager)
 
+if [ -z "$API_ID" ] || [ "$API_ID" == "None" ]; then
+  echo "❌ Error: Could not find API with name ${API_NAME}"
+  exit 1
+fi
+echo "✅ API ID: ${API_ID}"
+
 # ── Step 4: Update integration for prod alias ──
 RESOURCES=$(aws apigateway get-resources \
   --rest-api-id "$API_ID" \
@@ -52,11 +58,18 @@ RESOURCES=$(aws apigateway get-resources \
 RESOURCE_ID=$(echo "$RESOURCES" | python3 -c "
 import sys, json
 items = json.load(sys.stdin)
+target = None
 for item in items:
     if 'cuentas' in item.get('path', ''):
-        print(item['id'])
-        break
+        target = item['id']
+if target: print(target)
 ")
+
+if [ -z "$RESOURCE_ID" ]; then
+  echo "❌ Error: Could not find resource ID for path containing 'cuentas'"
+  exit 1
+fi
+echo "✅ Resource ID: ${RESOURCE_ID}"
 
 LAMBDA_URI="arn:aws:apigateway:${AWS_REGION}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS_REGION}:${ACCOUNT_ID}:function:${FUNCTION_NAME}:prod/invocations"
 
@@ -72,7 +85,7 @@ aws apigateway put-integration \
 # ── Step 5: Add Lambda permission for prod ──
 aws lambda add-permission \
   --function-name "${FUNCTION_NAME}:prod" \
-  --statement-id "apigateway-prod-${SUFFIX}" \
+  --statement-id "apigateway-prod-${SUFFIX}-$(date +%s)" \
   --action lambda:InvokeFunction \
   --principal apigateway.amazonaws.com \
   --source-arn "arn:aws:execute-api:${AWS_REGION}:${ACCOUNT_ID}:${API_ID}/*/GET/clientes/*/cuentas" \
@@ -98,7 +111,7 @@ aws apigateway create-deployment \
 # ── Step 8: Create Usage Plan + API Key ──
 echo "📌 Creating Usage Plan..."
 USAGE_PLAN_ID=$(aws apigateway create-usage-plan \
-  --name "plan-${SUFFIX}" \
+  --name "plan-${SUFFIX}-$(date +%s)" \
   --description "Usage plan for cuentas-api-${SUFFIX}" \
   --throttle burstLimit=5,rateLimit=2 \
   --quota limit=1000,period=DAY \
@@ -108,7 +121,7 @@ USAGE_PLAN_ID=$(aws apigateway create-usage-plan \
 
 echo "📌 Creating API Key..."
 API_KEY_ID=$(aws apigateway create-api-key \
-  --name "key-${SUFFIX}" \
+  --name "key-${SUFFIX}-$(date +%s)" \
   --enabled \
   --query 'id' --output text \
   --no-cli-pager)
@@ -146,7 +159,8 @@ aws apigateway get-export \
   --no-cli-pager \
   /tmp/openapi-export.json
 
-echo "⏳ Waiting for API Key propagation (20s)..."
-sleep 20
+echo "⏳ Waiting for API Key propagation (40s)..."
+echo "💡 Tip: API Gateway sometimes takes up to 2 minutes to propagate API Key changes."
+sleep 40
 
 echo "🟠 [Pipeline 3] Production promotion completed!"
