@@ -19,7 +19,7 @@ rules:
     then:
       function: pattern
       functionOptions:
-        match: "^(/[a-z0-9\-{}]+)+$"
+        match: '^(/[a-z0-9\-{}]+)+$'
 
   # Rule 3: Every operation must have an operationId
   operation-id-required:
